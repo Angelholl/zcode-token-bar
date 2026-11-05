@@ -562,6 +562,10 @@ const PAGE_INSTALLER = String.raw`
     try {
       window.__zstbData = d;
       ensureBar();
+      // 空会话（刚新建/还没有任何模型请求）整条隐藏：只渲染 ⟳5s 的残条看起来像坏了
+      const hasData = d && (d.turns || d.totalTokens > 0);
+      if (!hasData) { bar.style.display = 'none'; return; }
+      bar.style.display = '';
       watchComposer();
       render(d);                       // 先渲染拿到真实高度
       if (!place()) fallbackFloat();   // 再定位（推送 + 尺寸变化双触发），避免底部被窗口裁切
