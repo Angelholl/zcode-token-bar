@@ -2,7 +2,7 @@
 
 [English](README.en.md) | 简体中文
 
-为 ZCode 桌面版提供**实时 Token 用量统计条**：悬浮在聊天输入框下方，直接显示当前会话的轮次 / 步骤、输出速度、Token 总量、缓存命中率与上下文占用，点击胶囊可查看明细。
+为 ZCode 桌面版提供**实时 Token 用量统计**，两种形态任选：**插件状态行**（每条回复末尾一行真实用量，插件市场一键安装）或**悬浮统计条**（悬浮在聊天输入框下方，显示轮次 / 步骤、输出速度、Token 总量、缓存命中率与上下文占用，点击胶囊可查看明细）。
 
 ![统计条示例](assets/bar-preview.png)
 
@@ -26,6 +26,19 @@
 
 要求：Node.js 22+，Windows 10+。
 
+### 方式一：插件市场安装（statusline 状态行，推荐，无需调试端口）
+
+每条回复末尾附一行真实用量（轮数 / 步数 / tok/s / token 总量 / 缓存命中率 / 上下文占比）：
+
+1. 打开 ZCode 的 **插件市场 → 添加 → 添加插件市场**；
+2. 粘贴仓库地址：`https://github.com/Angelholl/zcode-token-bar`；
+3. 在 **个人 → zcode-token-bar** 找到 **ZCode 用量状态栏**，点击安装；
+4. 新建会话，回复末尾即出现用量状态行；也可用 `/status` 命令按需查看。
+
+### 方式二：悬浮统计条（CDP 注入，完整胶囊 UI）
+
+统计条悬浮在聊天输入框下方，点击胶囊可看明细：
+
 ```cmd
 git clone https://github.com/Angelholl/zcode-token-bar.git
 cd zcode-token-bar
@@ -36,11 +49,36 @@ start.cmd
 
 停止：`stop.cmd`。
 
+### 不想动手？让 AI 代劳
+
+把下面的提示词整段复制到 ZCode 对话框发送即可：
+
+**安装悬浮统计条（方式二）：**
+
+```text
+请帮我安装 zcode-token-bar 悬浮统计条：
+1. 克隆 https://github.com/Angelholl/zcode-token-bar 到合适目录；
+2. 运行其中的 start.cmd（如果需要重启 ZCode，先提醒我保存未完成的工作）；
+3. 完成后确认统计条出现在输入框下方，并告诉我 stop.cmd 的位置。
+```
+
+**安装插件状态行（方式一）：**
+
+```text
+请帮我把 https://github.com/Angelholl/zcode-token-bar 添加为 ZCode 插件市场，
+安装其中的「ZCode 用量状态栏」（token-bar-statusline）插件，
+装好后告诉我如何新建会话验证回复末尾的状态行。
+```
+
 ## 卸载
+
+**悬浮统计条（方式二）：**
 
 1. 运行 `stop.cmd` 停止控制器；
 2. 直接从开始菜单/正常方式启动 ZCode（不带调试参数），统计条即消失；
 3. 删除本仓库目录即完成卸载。本工具不写入 ZCode 安装目录，无残留。
+
+**插件状态行（方式一）：** 在 **设置 → 插件** 里停用或卸载即可。
 
 ## 配置（环境变量）
 
