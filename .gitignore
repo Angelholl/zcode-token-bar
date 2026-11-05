@@ -1,0 +1,7 @@
+# 运行时产物（含本机路径/日志），不入库
+*.pid
+*.log
+out.txt
+err.txt
+ctx-sources.json
+*.bak-*
