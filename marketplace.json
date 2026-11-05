@@ -4,7 +4,7 @@
     {
       "name": "token-bar-statusline",
       "source": "./statusline",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "One-line usage statusline for ZCode: appends real session stats (turns, steps, tok/s, tokens, cache hit, context %) to the end of every reply, read from the local usage database.",
       "displayName": "ZCode Token Bar",
       "displayName_i18n": { "zh-CN": "ZCode 用量状态栏" },
