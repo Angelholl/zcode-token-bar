@@ -2,7 +2,7 @@
 
 English | [简体中文](README.md)
 
-A **live token usage bar** for the ZCode desktop app, in two flavours: a **statusline plugin** (one real usage line at the end of every reply, one-click install from a plugin marketplace) or a **floating bar** below the chat input box with turns / steps, output speed, total tokens, cache hit rate and context usage — click any pill for details.
+A **live token usage bar** for the ZCode desktop app: it floats below the chat input box and shows, for the current session, turns / steps, output speed, total tokens, cache hit rate and context usage. Click any pill for details.
 
 ![Bar preview](assets/bar-preview.png)
 
@@ -27,21 +27,6 @@ A **live token usage bar** for the ZCode desktop app, in two flavours: a **statu
 
 Requirements: Node.js 22+, Windows 10+.
 
-### Option 1: Plugin marketplace (statusline, recommended, no debug port needed)
-
-Appends one real usage line (turns / steps / tok/s / tokens / cache hit / context %) to the end of every reply:
-
-1. Open ZCode **Plugin Marketplace → Add → Add Plugin Marketplace**;
-2. Paste either source (first one recommended):
-   - GitHub repo: `Angelholl/zcode-token-bar`
-   - Direct catalog: `https://raw.githubusercontent.com/Angelholl/zcode-token-bar/main/marketplace.json`
-3. Under **Personal → zcode-token-bar**, find **ZCode Token Bar** and click Install;
-4. Start a new session — every reply now ends with a usage line; `/status` shows it on demand.
-
-### Option 2: Floating bar (CDP injection, full pills UI)
-
-The bar floats below the chat input box; click a pill for details:
-
 ```cmd
 git clone https://github.com/Angelholl/zcode-token-bar.git
 cd zcode-token-bar
@@ -56,9 +41,7 @@ Stop: `stop.cmd`.
 
 ### Let AI do it
 
-Paste one of these prompts into the ZCode chat box:
-
-**Floating bar (Option 2):**
+Paste this prompt into the ZCode chat box:
 
 ```text
 Please install the zcode-token-bar floating bar for me:
@@ -67,23 +50,11 @@ Please install the zcode-token-bar floating bar for me:
 3. Confirm the bar appears below the input box and tell me where stop.cmd is.
 ```
 
-**Statusline plugin (Option 1):**
-
-```text
-Please add https://github.com/Angelholl/zcode-token-bar as a ZCode plugin marketplace
-and install the "ZCode Token Bar" (token-bar-statusline) plugin,
-then tell me how to verify the usage line at the end of replies in a new session.
-```
-
 ## Uninstall
-
-**Floating bar (Option 2):**
 
 1. Run `stop.cmd` to stop the controller;
 2. Launch ZCode normally (without the debug port) and the bar is gone;
 3. Delete this folder. The tool never writes into the ZCode install directory — nothing left behind.
-
-**Statusline plugin (Option 1):** disable or uninstall it under **Settings → Plugins**.
 
 ## Configuration (environment variables)
 
