@@ -1,6 +1,6 @@
 {
   "name": "token-bar-statusline",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "One-line usage statusline for ZCode: appends real session stats (turns, steps, tok/s, tokens, cache hit, context %) to the end of every reply, read from the local usage database.",
   "description_i18n": {
     "en": "Usage statusline: every reply ends with one real stats line — turns, steps, tok/s, session tokens, cache-hit rate and context % — read-only from the ZCode usage database.",

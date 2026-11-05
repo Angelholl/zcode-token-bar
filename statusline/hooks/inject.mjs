@@ -1,11 +1,14 @@
 #!/usr/bin/env node
-// UserPromptSubmit 钩子：注入「状态栏指令」。
-// ZCode 没有插件可写的界面扩展点，钩子输出里只有 additionalContext 会进入会话；
-// 让状态行出现在界面里的唯一通道，是让模型在收尾时把用量脚本的输出原样写成回复最后一行。
-// 本钩子把当前会话 ID 与脚本绝对路径固化进指令，模型收尾时无需自行解析。
+// UserPromptSubmit 钩子：预计算状态行并注入「附加行指令」。
+//
+// 为什么不让模型自己跑命令：命令是工具调用，ZCode 会把最后一次工具调用之前的
+// 全部回复内容折叠进「已工作 X 分 X 秒」，导致正文不可见（实测复现）。
+// 改为本钩子在提问时刻直接运行用量脚本，把结果作为字面文本注入指令，
+// 模型零工具调用、纯文字回复，正文与状态行都能完整显示。
+// 代价：数据定格在提问时刻，不含本轮进行中的增量——对状态行可接受。
 // 输出必须是严格 JSON。
 
-import fs from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,14 +40,24 @@ try {
   } catch {}
   sid = sid || process.env.ZCODE_SESSION_ID || "";
 
-  const cmd = `node "${SCRIPT}"${sid ? ` --session ${sid}` : ""}`;
+  // 预计算状态行（复用与悬浮条同口径的用量脚本；无数据时输出为空 → 不注入指令）
+  const r = spawnSync(process.execPath, [SCRIPT, ...(sid ? ["--session", sid] : [])], {
+    timeout: 5000,
+    encoding: "utf8",
+  });
+  const line = (r.stdout || "").split("\n").map((s) => s.trim()).filter(Boolean)[0] || "";
+  if (!line) {
+    emit("");
+    process.exit(0);
+  }
+
   emit(
     [
-      "【状态栏指令·附加行】请先照常完整回答用户的问题，不要因本指令省略、缩减或折叠任何回答内容；",
-      "在全部回答内容输出完毕后，追加本次回复的最后一行：原样输出下面这条命令打印的那一行",
-      "（纯文本一行，不加引号、不加代码块、其后不再有任何内容；命令没有输出就不加）：",
-      cmd,
-      "它只读查询 ZCode 本地 usage 数据库，给出本轮真实用量：轮数、步数、tok/s、token 总量、缓存命中率与上下文占比。若用户明确要求不要附加任何内容，则不执行。",
+      "【状态栏·附加行】请照常完整回答用户，不要因本指令省略、缩减或折叠任何回答内容；",
+      "全部回答内容输出完毕后，在本次回复的最后一行原样输出下面这一行",
+      "（纯文本一行，不加引号、不加代码块、数字不要改写、其后不再有任何内容）：",
+      line,
+      "这是预先从本地 usage 数据库读取的本会话真实用量。若用户明确要求不要附加任何内容，则不输出这一行。",
     ].join("\n")
   );
 } catch {
