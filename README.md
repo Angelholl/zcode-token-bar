@@ -31,7 +31,9 @@
 每条回复末尾附一行真实用量（轮数 / 步数 / tok/s / token 总量 / 缓存命中率 / 上下文占比）：
 
 1. 打开 ZCode 的 **插件市场 → 添加 → 添加插件市场**；
-2. 粘贴仓库地址：`https://github.com/Angelholl/zcode-token-bar`；
+2. 粘贴以下任意一种源（推荐第一种）：
+   - 目录/GitHub 仓库：`Angelholl/zcode-token-bar`
+   - 直连清单：`https://raw.githubusercontent.com/Angelholl/zcode-token-bar/main/marketplace.json`
 3. 在 **个人 → zcode-token-bar** 找到 **ZCode 用量状态栏**，点击安装；
 4. 新建会话，回复末尾即出现用量状态行；也可用 `/status` 命令按需查看。
 

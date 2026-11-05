@@ -32,7 +32,9 @@ Requirements: Node.js 22+, Windows 10+.
 Appends one real usage line (turns / steps / tok/s / tokens / cache hit / context %) to the end of every reply:
 
 1. Open ZCode **Plugin Marketplace → Add → Add Plugin Marketplace**;
-2. Paste the repo URL: `https://github.com/Angelholl/zcode-token-bar`;
+2. Paste either source (first one recommended):
+   - GitHub repo: `Angelholl/zcode-token-bar`
+   - Direct catalog: `https://raw.githubusercontent.com/Angelholl/zcode-token-bar/main/marketplace.json`
 3. Under **Personal → zcode-token-bar**, find **ZCode Token Bar** and click Install;
 4. Start a new session — every reply now ends with a usage line; `/status` shows it on demand.
 
