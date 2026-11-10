@@ -8,6 +8,10 @@ $pidfile = Join-Path $tool 'controller.pid'
 New-Item -ItemType Directory -Force -Path $tool | Out-Null
 $fail = 0
 
+# Preserve any live controller pid file: the test clobbers it, so restore afterwards.
+$hadPid = Test-Path $pidfile
+$realPid = if ($hadPid) { Get-Content $pidfile -Raw }
+
 function Assert($cond, $msg) {
   if ($cond) { Write-Host "PASS: $msg" } else { Write-Host "FAIL: $msg"; $script:fail = 1 }
 }
@@ -27,5 +31,7 @@ if (Test-Path $repoPid) { Remove-Item $repoPid -Force }   # ensure clean baselin
 $out = & (Join-Path $repo 'stop.cmd')
 Assert ($out -match 'No running controller found') "stop.cmd reports absence without error"
 Assert (-not (Test-Path $repoPid)) "stop.cmd no longer looks for controller.pid in the script directory"
+
+if ($hadPid) { Set-Content -Path $pidfile -Value $realPid -Encoding Ascii }  # restore live record
 
 if ($fail) { exit 1 } else { Write-Host 'ALL TESTS PASSED'; exit 0 }
