@@ -34,7 +34,19 @@ start.cmd
 
 > **注意**：若 ZCode 正在运行，`start.cmd` 会询问是否结束 ZCode 并以调试端口重启——**请先保存 ZCode 里未完成的工作**。重启后约 2 秒，统计条出现在输入框下方。
 
-停止：`stop.cmd`。
+停止：`stop.cmd`（按 `%USERPROFILE%\.zcode\tools\session-stats-cdp\controller.pid` 停控制器，不动 ZCode 本身）。
+
+### 开机自启
+
+运行一次：
+
+```cmd
+boot-start.cmd
+```
+
+即可把「ZCode（带调试端口）+ 统计控制器」注册进启动文件夹（`zcode-token-bar.lnk`），开机登录后同步启动。`boot-start.cmd` 非交互且幂等：ZCode 未运行才带 `--remote-debugging-port=9333` 拉起，控制器未运行才拉起，重复运行安全。
+
+注意：开机后若你抢先手动打开了 ZCode（不带调试端口），该次会话统计条不会出现——此时手动跑一次 `start.cmd` 即可。卸载自启：删除启动文件夹里的 `zcode-token-bar.lnk`。
 
 ### 不想动手？让 AI 代劳
 

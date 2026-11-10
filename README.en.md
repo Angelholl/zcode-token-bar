@@ -37,7 +37,25 @@ start.cmd
 > debugging port — **save unfinished work in ZCode first**. The bar appears below the input
 > box about 2 seconds after the relaunch.
 
-Stop: `stop.cmd`.
+Stop: `stop.cmd` (stops the controller via `%USERPROFILE%\.zcode\tools\session-stats-cdp\controller.pid`, leaves ZCode untouched).
+
+### Autostart at boot
+
+Run once:
+
+```cmd
+boot-start.cmd
+```
+
+This registers "ZCode (with the debug port) + the token bar controller" into your Startup
+folder (`zcode-token-bar.lnk`), so both launch together at logon. `boot-start.cmd` is
+non-interactive and idempotent: it starts ZCode with `--remote-debugging-port=9333` only
+when ZCode is not running, and starts the controller only when it is not running — safe
+to re-run.
+
+Note: if you launch ZCode manually (without the debug port) before the startup entry
+runs, that session won't show the bar — run `start.cmd` once instead. To remove the
+autostart entry, delete `zcode-token-bar.lnk` from the Startup folder.
 
 ### Let AI do it
 
