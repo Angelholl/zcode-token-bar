@@ -20,13 +20,14 @@ import { DatabaseSync } from "node:sqlite";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { writeFileSync, readFileSync, existsSync, appendFileSync, readdirSync, statSync } from "node:fs";
+import { execSync, spawn as spawnProc } from "node:child_process";
 
 const PORT = Number(process.env.ZSTB_PORT) || 9333;
 const INTERVAL = Number(process.env.ZSTB_INTERVAL) || 5000;
 const CTX_ENV_OVERRIDE = Number(process.env.ZSTB_CONTEXT_LIMIT) || 0; // 显式指定时优先
 const DEFAULT_CTX_LIMIT = 1_000_000;                                   // 识别不到才兜底
 const DB_PATH = process.env.ZSTB_DB || join(homedir(), ".zcode", "cli", "db", "db.sqlite");
-const TOOL_DIR = join(homedir(), ".zcode", "tools", "session-stats-cdp");
+const TOOL_DIR = process.env.ZSTB_TOOL_DIR || join(homedir(), ".zcode", "tools", "session-stats-cdp");
 const PID_FILE = join(TOOL_DIR, "controller.pid");
 const CTX_SOURCES_FILE = join(TOOL_DIR, "ctx-sources.json");
 
@@ -615,14 +616,60 @@ function requestRefresh() {
   setTimeout(run, 30);
 }
 
+// ---------- 端口丢失自愈：ZCode 更新器重启后不带调试端口，此处检测并带端口重启 ----------
+const HEAL_ENABLED = process.env.ZSTB_HEAL !== "0";
+const ZCODE_IMAGE = process.env.ZSTB_ZCODE_IMAGE || "ZCode.exe";
+const ZCODE_EXE_CANDIDATES = [
+  process.env.ZSTB_ZCODE_EXE,
+  "D:\\ZCode\\ZCode.exe",
+  join(process.env.LOCALAPPDATA || "", "Programs", "ZCode", "ZCode.exe"),
+].filter(Boolean);
+const HEAL_TICKS = Number(process.env.ZSTB_HEAL_TICKS) || 3;          // 连续失联 N 个 tick 才动手
+const HEAL_MAX = Number(process.env.ZSTB_HEAL_MAX) || 3;              // 放弃上限（防无限杀循环）
+const HEAL_COOLDOWN_MS = Number(process.env.ZSTB_HEAL_COOLDOWN_MS) || 120_000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let healMisses = 0, healAttempts = 0, healNextAt = 0, healGaveUp = false;
+function zcodeRunning() {
+  try {
+    return execSync(`tasklist /FI "IMAGENAME eq ${ZCODE_IMAGE}" /NH`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
+      .toLowerCase().includes(ZCODE_IMAGE.toLowerCase());
+  } catch { return false; }
+}
+async function maybeHeal(pages) {
+  if (!HEAL_ENABLED) return;
+  if (pages.length > 0 || !zcodeRunning()) { healMisses = 0; return; } // 端口通，或 ZCode 没跑（用户主动关闭）都不插手
+  if (Date.now() < healNextAt) return;
+  if (++healMisses < HEAL_TICKS) return;
+  healMisses = 0;
+  if (healAttempts >= HEAL_MAX) {
+    if (!healGaveUp) { healGaveUp = true; const m = `自愈放弃：已尝试 ${healAttempts} 次端口仍不通，请手动排查 ${PORT} 端口占用`; flog(m); log(m); }
+    return;
+  }
+  healAttempts++;
+  healNextAt = Date.now() + HEAL_COOLDOWN_MS;
+  const exe = ZCODE_EXE_CANDIDATES.find((p) => existsSync(p));
+  if (!exe) { const m = `自愈中断：未找到 ZCode.exe（候选：${ZCODE_EXE_CANDIDATES.join("; ")}），可用 ZSTB_ZCODE_EXE 指定`; flog(m); log(m); return; }
+  const m1 = `自愈：${ZCODE_IMAGE} 在运行但调试端口 ${PORT} 不通（如更新器重启所致），带端口重启 ZCode（第 ${healAttempts}/${HEAL_MAX} 次）`;
+  flog(m1); log(m1);
+  try { execSync(`taskkill /IM ${ZCODE_IMAGE} /F`, { stdio: "ignore" }); } catch {}
+  await sleep(3000);
+  try {
+    const ch = spawnProc(exe, [`--remote-debugging-port=${PORT}`], { detached: true, stdio: "ignore" });
+    ch.unref();
+    const m2 = `自愈：ZCode 已带端口重启（${exe}）`;
+    flog(m2); log(m2);
+  } catch (e) { flog("自愈失败:", e?.message); log("自愈失败:", e?.message); }
+}
+
 async function tick() {
   if (ticking) return;
   ticking = true;
   try {
+  const pages = await listPages();
+  await maybeHeal(pages);
   const stats = computeStats(activeSessionId);
   if (!stats) return;
   const payload = JSON.stringify(stats);
-  const pages = await listPages();
   const live = new Set();
   for (const p of pages) {
     live.add(p.id);
