@@ -637,7 +637,12 @@ function zcodeRunning() {
 }
 async function maybeHeal(pages) {
   if (!HEAL_ENABLED) return;
-  if (pages.length > 0 || !zcodeRunning()) { healMisses = 0; return; } // 端口通，或 ZCode 没跑（用户主动关闭）都不插手
+  if (pages.length > 0 || !zcodeRunning()) {
+    // 端口恢复即重置预算：3 次上限是"每个失效期"而非控制器终生，否则一次放弃永久罢工
+    if (pages.length > 0 && (healAttempts || healGaveUp)) { healAttempts = 0; healGaveUp = false; }
+    healMisses = 0;
+    return; // 端口通，或 ZCode 没跑（用户主动关闭）都不插手
+  }
   if (Date.now() < healNextAt) return;
   if (++healMisses < HEAL_TICKS) return;
   healMisses = 0;
