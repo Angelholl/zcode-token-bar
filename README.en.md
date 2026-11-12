@@ -22,6 +22,10 @@ A **live token usage bar** for the ZCode desktop app: it floats below the chat i
 - Follows the input box in real time as it grows with long content (ResizeObserver); floats above the composer when the window is too short
 - Context limit is resolved per current model (provider config → same-model catalog → 1M default); overridable via environment variable
 - Crash-safe: uncaught exceptions are logged only, the controller keeps running
+- **Lost-port self-heal**: after a ZCode auto-update the updater relaunches ZCode without the
+  debug port; when the controller detects "ZCode running but the port is down" for ~15 seconds
+  it restarts ZCode with the port automatically (max 3 retries, 2-minute cooldown; in-flight
+  generation is interrupted by the restart). Set `ZSTB_HEAL=0` to disable.
 
 ## Install (Windows)
 
